@@ -28,6 +28,8 @@ func UserHandlerCreate(ctx *fiber.Ctx) error {
 	if err := ctx.BodyParser(user); err != nil {
 		return err
 	}
+
+	//VALIDASI REQUEST
 	validate := validator.New()
 	errValidate := validate.Struct(user)
 
@@ -84,4 +86,43 @@ func UserHandlerGetByID(ctx *fiber.Ctx) error {
 		"data":    user,
 	})
 
+}
+
+func UserHandlerUpdate (ctx *fiber.Ctx) error {
+	userRequest := new(request.UserUpdateRequest)
+
+	if err := ctx.BodyParser(userRequest); err != nil {
+		return ctx.Status(400).JSON(fiber.Map{
+			"message": "bad request",
+		})
+	}
+
+	userId := ctx.Params("id")
+
+	var user entity.User
+	err := database.DB.First(&user, "id = ?", userId).Error
+	if err != nil {
+		return ctx.Status(404).JSON(fiber.Map{
+			"message": "user not found",
+		})
+	}
+
+	// UPDATE DATA USER
+	if userRequest.Name != "" {
+		user.Name = userRequest.Name
+	}
+	user.Address = userRequest.Address
+	user.Phone = userRequest.Phone
+
+	errUpdate := database.DB.Save(&user).Error
+	if errUpdate != nil {
+		
+		return ctx.Status(500).JSON(fiber.Map{
+			"message": "internal server error",
+		})
+	}
+	return ctx.JSON(fiber.Map{
+		"message": "success",
+		"data":    user,
+	})
 }

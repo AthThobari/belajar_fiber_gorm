@@ -7,3 +7,12 @@ type UserCreateRequest struct {
 	Address   string `json:"address"`
 	Phone     string `json:"phone"`
 }
+type UserUpdateRequest struct {
+	Name      string `json:"name"` 
+	Address   string `json:"address"`
+	Phone     string `json:"phone"`
+}
+
+type UserUpdateEmail struct {
+		Email     string `json:"email" validate:"required"`
+}
