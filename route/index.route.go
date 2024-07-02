@@ -1,6 +1,7 @@
 package route
 
 import (
+	"belajar_golang_fiber/config"
 	"belajar_golang_fiber/handler"
 
 	"github.com/gofiber/fiber/v2"
@@ -8,6 +9,7 @@ import (
 
 func RouteInit(r *fiber.App) {
 	
+	r.Static("/public", config.ProjectRootPath+"/public/asset")
 	r.Get("/user",handler.UserHandlerGetAll)
 	r.Get("/user/:id", handler.UserHandlerGetByID)
 	r.Post("/user",handler.UserHandlerCreate)
