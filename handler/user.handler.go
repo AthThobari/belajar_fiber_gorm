@@ -4,6 +4,7 @@ import (
 	"belajar_golang_fiber/database"
 	"belajar_golang_fiber/model/entity"
 	"belajar_golang_fiber/model/request"
+	"belajar_golang_fiber/utils"
 	"log"
 
 	"github.com/go-playground/validator/v10"
@@ -46,6 +47,16 @@ func UserHandlerCreate(ctx *fiber.Ctx) error {
 		Address: user.Address,
 		Phone:   user.Phone,
 	}
+
+	hashedPassword, err := utils.HashingPassword(user.Password)
+	if err != nil {
+		log.Println(err)
+		ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "internal server error",
+		})
+	}
+
+	newUser.Password = hashedPassword
 
 	errCreateUser := database.DB.Create(&newUser).Error
 
@@ -114,6 +125,51 @@ func UserHandlerUpdate(ctx *fiber.Ctx) error {
 	user.Address = userRequest.Address
 	user.Phone = userRequest.Phone
 
+	errUpdate := database.DB.Save(&user).Error
+	if errUpdate != nil {
+
+		return ctx.Status(500).JSON(fiber.Map{
+			"message": "internal server error",
+		})
+	}
+	return ctx.JSON(fiber.Map{
+		"message": "success",
+		"data":    user,
+	})
+}
+
+func UserHandlerUpdateEmail(ctx *fiber.Ctx) error {
+	userRequest := new(request.UserUpdateEmailRequest)
+
+	if err := ctx.BodyParser(userRequest); err != nil {
+		return ctx.Status(400).JSON(fiber.Map{
+			"message": "bad request",
+		})
+	}
+
+	userId := ctx.Params("id")
+
+	var user entity.User
+
+	//CHECK AVAILABLE USER
+	err := database.DB.First(&user, "id = ?", userId).Error
+	if err != nil {
+		return ctx.Status(404).JSON(fiber.Map{
+			"message": "user not found",
+		})
+	}
+	
+	//CHECK AVAILABLE EMAIL
+	errCheckEmail := database.DB.First(&user, "email = ?", userRequest.Email).Error
+	if errCheckEmail == nil {
+		return ctx.Status(402).JSON(fiber.Map{
+			"message": "email already use",
+		})
+	}
+	// UPDATE DATA USER
+	
+	user.Email = userRequest.Email
+	
 	errUpdate := database.DB.Save(&user).Error
 	if errUpdate != nil {
 
