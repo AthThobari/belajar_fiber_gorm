@@ -14,7 +14,8 @@ func Auth(ctx *fiber.Ctx) error {
 			"message": "unautenticated",
 		})
 	}
-	_, err := utils.VerifyToken(token)
+	// _, err := utils.VerifyToken(token)
+	claims, err := utils.DecodeToken(token)
 
 	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -22,14 +23,24 @@ func Auth(ctx *fiber.Ctx) error {
 		})
 	}
 
-// 	if token != "secret" {
-// 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-// 			"message": "unautenticated",
-// 		})
-// 	}
+	// 	if token != "secret" {
+	// 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+	// 			"message": "unautenticated",
+	// 		})
+	// 	}
+
+
+	role := claims["role"].(string)
+	if role != "admin" {
+		return ctx.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"message": "forbidden access",
+		})
+	}
+	ctx.Locals("userInfo", claims)
+	// ctx.Locals("role", claims["role"])
+
 	return ctx.Next()
 }
-
 
 func PermissionCreate(ctx *fiber.Ctx) error {
 	return ctx.Next()
