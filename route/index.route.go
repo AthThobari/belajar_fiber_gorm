@@ -21,4 +21,5 @@ func RouteInit(r *fiber.App) {
 	r.Put("/user/:id/update-email", handler.UserHandlerUpdateEmail)
 	r.Delete("/user/:id", handler.UserHandlerDelete)
 
+	r.Post("/book", handler.BookHandlerCreate)
 }
